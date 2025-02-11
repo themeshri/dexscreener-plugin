@@ -1,0 +1,66 @@
+<!-- popup.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            width: 350px;  /* Made wider for contract address */
+            padding: 10px;
+            font-family: Arial, sans-serif;
+        }
+        .token-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        .token-table th {
+            background-color: #f2f2f2;
+            padding: 8px;
+            text-align: left;
+            border-bottom: 2px solid #ddd;
+        }
+        .token-table td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        .token-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        .contract-address {
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .reset-button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background-color: #c7c7c7;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .reset-button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <h3></h3>
+    <table class="token-table">
+        <thead>
+            <tr>
+                <th>Ticker</th>
+                <th>MC</th>
+                <th>Time</th>
+                <th>Volume</th>
+                <th>Contract Address</th>
+            </tr>
+        </thead>
+        <tbody id="nameList">
+        </tbody>
+    </table>
+    <button id="resetButton" class="reset-button">Reset History</button>
+    <script src="popup.js"></script>
+</body>
+</html>
