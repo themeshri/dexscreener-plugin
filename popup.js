@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const nameList = document.getElementById('nameList');
     const resetButton = document.getElementById('resetButton');
     const toggleButton = document.getElementById('toggleButton');
+    const muteButton = document.getElementById('muteButton');
     let refreshInterval;
 
     function startRefresh() {
@@ -24,10 +25,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Initialize mute state
+    chrome.storage.local.get(['isMuted'], function(result) {
+        const isMuted = result.isMuted === true;
+        updateMuteButton(isMuted);
+    });
+
     function updateToggleButton(isRunning) {
         toggleButton.textContent = isRunning ? 'Stop' : 'Start';
         toggleButton.classList.remove('running', 'stopped');
         toggleButton.classList.add(isRunning ? 'running' : 'stopped');
+    }
+
+    function updateMuteButton(isMuted) {
+        muteButton.textContent = isMuted ? 'Unmute' : 'Mute';
+        muteButton.classList.toggle('muted', isMuted);
     }
 
     toggleButton.addEventListener('click', async function() {
@@ -50,6 +62,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 chrome.tabs.sendMessage(tabs[0].id, {
                     type: 'TOGGLE_PLUGIN',
                     enabled: newState
+                }).catch(() => {});
+            }
+        });
+    });
+
+    muteButton.addEventListener('click', async function() {
+        const tabs = await chrome.tabs.query({active: true, currentWindow: true});
+        chrome.storage.local.get(['isMuted'], function(result) {
+            const isCurrentlyMuted = result.isMuted === true;
+            const newState = !isCurrentlyMuted;
+            
+            chrome.storage.local.set({ 'isMuted': newState });
+            updateMuteButton(newState);
+
+            if (tabs[0] && tabs[0].url && tabs[0].url.includes('dexscreener.com')) {
+                chrome.tabs.sendMessage(tabs[0].id, {
+                    type: 'TOGGLE_MUTE',
+                    muted: newState
                 }).catch(() => {});
             }
         });

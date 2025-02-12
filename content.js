@@ -2,6 +2,7 @@
 let seenNames = new Set();
 let tokenTimestamps = new Map();
 let isEnabled = true; // Default to enabled
+let isMuted = false;
 
 // Load previously seen names from storage
 chrome.storage.local.get(['seenNames'], function(result) {
@@ -26,6 +27,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             initializeObserver();
         }
     }
+    if (message.type === 'TOGGLE_MUTE') {
+        isMuted = message.muted;
+    }
 });
 
 // Load initial state
@@ -34,6 +38,11 @@ chrome.storage.local.get(['pluginEnabled'], function(result) {
     if (isEnabled) {
         initializeObserver();
     }
+});
+
+// Load initial mute state
+chrome.storage.local.get(['isMuted'], function(result) {
+    isMuted = result.isMuted === true;
 });
 
 // Function to check for new names
@@ -80,12 +89,14 @@ function checkForNewName(symbol, marketCap, volume, contractAddress) {
         });
 
         try {
-            audio.currentTime = 0;
-            const playPromise = audio.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.log('Audio play error:', error);
-                });
+            if (!isMuted) {
+                audio.currentTime = 0;
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.log('Audio play error:', error);
+                    });
+                }
             }
         } catch (error) {
             console.error('Error playing audio:', error);
