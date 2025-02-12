@@ -2,6 +2,58 @@
 document.addEventListener('DOMContentLoaded', function() {
     const nameList = document.getElementById('nameList');
     const resetButton = document.getElementById('resetButton');
+    const toggleButton = document.getElementById('toggleButton');
+    let refreshInterval;
+
+    function startRefresh() {
+        refreshInterval = setInterval(displayNames, 2000);
+    }
+
+    function stopRefresh() {
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+        }
+    }
+
+    // Initialize toggle state
+    chrome.storage.local.get(['pluginEnabled'], function(result) {
+        const isRunning = result.pluginEnabled !== false;
+        updateToggleButton(isRunning);
+        if (isRunning) {
+            startRefresh();
+        }
+    });
+
+    function updateToggleButton(isRunning) {
+        toggleButton.textContent = isRunning ? 'Stop' : 'Start';
+        toggleButton.classList.remove('running', 'stopped');
+        toggleButton.classList.add(isRunning ? 'running' : 'stopped');
+    }
+
+    toggleButton.addEventListener('click', async function() {
+        const tabs = await chrome.tabs.query({active: true, currentWindow: true});
+        chrome.storage.local.get(['pluginEnabled'], function(result) {
+            const isCurrentlyRunning = result.pluginEnabled !== false;
+            const newState = !isCurrentlyRunning;
+            
+            chrome.storage.local.set({ 'pluginEnabled': newState });
+            updateToggleButton(newState);
+
+            // Control refresh interval
+            if (newState) {
+                startRefresh();
+            } else {
+                stopRefresh();
+            }
+
+            if (tabs[0] && tabs[0].url && tabs[0].url.includes('dexscreener.com')) {
+                chrome.tabs.sendMessage(tabs[0].id, {
+                    type: 'TOGGLE_PLUGIN',
+                    enabled: newState
+                }).catch(() => {});
+            }
+        });
+    });
 
     function displayNames() {
         nameList.innerHTML = '';
@@ -73,16 +125,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Display initial list
-    displayNames();
-
-    // Set up storage change listener
-    chrome.storage.onChanged.addListener((changes, namespace) => {
-        if (namespace === 'local' && changes.seenNames) {
-            displayNames();
-        }
-    });
-
     // Reset button click handler
     resetButton.addEventListener('click', async function() {
         if (confirm('Are you sure you want to reset the history? This cannot be undone.')) {
@@ -99,6 +141,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Auto-refresh every 2 seconds
-    setInterval(displayNames, 2000);
+    // Set up storage change listener
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+        if (namespace === 'local' && changes.seenNames) {
+            displayNames();
+        }
+    });
 });

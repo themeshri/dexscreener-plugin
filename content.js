@@ -1,6 +1,7 @@
 // content.js
 let seenNames = new Set();
 let tokenTimestamps = new Map();
+let isEnabled = true; // Default to enabled
 
 // Load previously seen names from storage
 chrome.storage.local.get(['seenNames'], function(result) {
@@ -15,9 +16,29 @@ const audio = new Audio(chrome.runtime.getURL('notification.mp3'));
 // Ensure audio is loaded and ready
 audio.load();
 
+// Listen for toggle messages
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'TOGGLE_PLUGIN') {
+        isEnabled = message.enabled;
+        if (!isEnabled) {
+            observer.disconnect();
+        } else {
+            initializeObserver();
+        }
+    }
+});
+
+// Load initial state
+chrome.storage.local.get(['pluginEnabled'], function(result) {
+    isEnabled = result.pluginEnabled !== false;
+    if (isEnabled) {
+        initializeObserver();
+    }
+});
+
 // Function to check for new names
 function checkForNewName(symbol, marketCap, volume, contractAddress) {
-    if (!symbol || symbol === 'undefined') {
+    if (!isEnabled || !symbol || symbol === 'undefined') {
         return;
     }
 

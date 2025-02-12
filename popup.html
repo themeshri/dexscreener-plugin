@@ -43,6 +43,25 @@
         .reset-button:hover {
             background-color: #cc0000;
         }
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .toggle-button {
+            padding: 8px 16px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .toggle-button.running {
+            background-color: #f44336;
+        }
+        .toggle-button.stopped {
+            background-color: #4CAF50;
+        }
     </style>
 </head>
 <body>
@@ -60,7 +79,10 @@
         <tbody id="nameList">
         </tbody>
     </table>
-    <button id="resetButton" class="reset-button">Reset History</button>
+    <div class="button-container">
+        <button id="toggleButton" class="toggle-button running">Stop</button>
+        <button id="resetButton" class="reset-button">Reset History</button>
+    </div>
     <script src="popup.js"></script>
 </body>
 </html>
